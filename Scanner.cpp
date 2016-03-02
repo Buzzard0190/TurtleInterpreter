@@ -28,7 +28,7 @@ top: //I'm going to use a goto because cochran said we could!!!
                 return Token::EOT;
             }
         } while (c != '\n');
-        lineno++;
+        this->lineno_++;
         goto top;
     }
     
@@ -80,14 +80,11 @@ top: //I'm going to use a goto because cochran said we could!!!
         
         if (c == '.') {
             buffer.push_back(c);
-        }
-        c = in_.get();
-        
-        if (std::isdigit(c)) {
-            do {
+            c = in_.get();
+            while (std::isdigit(c)) {
                 buffer.push_back(c);
                 c = in_.get();
-            } while (std::isdigit(c));
+            }
         }
         in_.unget();
         attr.f = std::stod(buffer);
@@ -113,7 +110,7 @@ top: //I'm going to use a goto because cochran said we could!!!
             {"OD", Token::OD},
             {"IF", Token::IF},
             {"THEN", Token::THEN},
-            {"ELSIF", Token::ELSIF},
+            {"ELSEIF", Token::ELSIF},
             {"ELSE", Token::ELSE},
             {"FI", Token::FI},
             {"HOME", Token::HOME},
