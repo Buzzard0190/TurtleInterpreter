@@ -110,7 +110,7 @@ top: //I'm going to use a goto because cochran said we could!!!
             {"OD", Token::OD},
             {"IF", Token::IF},
             {"THEN", Token::THEN},
-            {"ELSEIF", Token::ELSIF},
+            {"ELSIF", Token::ELSIF},
             {"ELSE", Token::ELSE},
             {"FI", Token::FI},
             {"HOME", Token::HOME},
