@@ -2,6 +2,7 @@
 #include <sstream>
 #include <stdexcept>
 
+//provided
 void Parser::match(Token tok) {
   if (tok != lookahead_) {
     std::stringstream ss;
@@ -12,6 +13,7 @@ void Parser::match(Token tok) {
   lookahead_ = scanner_.nextToken(attribute_, lineno_);
 }
 
+//provided
 void Parser::parse() {
   lookahead_ = scanner_.nextToken(attribute_, lineno_);
   try {
@@ -23,11 +25,13 @@ void Parser::parse() {
   }
 }
 
+//provided
 void Parser::prog() {
   stmt_seq();
   match(Token::EOT);
 }
 
+//provided
 void Parser::stmt_seq() {
   while (lookahead_ != Token::EOT) {
     Stmt *s = block();
@@ -37,16 +41,37 @@ void Parser::stmt_seq() {
 
 Stmt *Parser::stmt() {
   // XXX
+    if (lookahead_ == Token::IDENT) {
+        return assign();
+    } else if (lookahead_ == Token::WHILE){
+        return while_stmt();
+    } else if (lookahead_ == Token::IF){
+        return if_stmt();
+    } else {
+        return action();
+    }
 }
 
 Stmt *Parser::assign() {
   // XXX
+    std::string name = attribute_.s;
+    match(Token::IDENT);
+    match(Token::ASSIGN);
+    Expr *e = expr();
+    return new AssignStmt(name, e);
 }
 
 Stmt *Parser::block() {
   // XXX
+    do {
+        Stmt *s = stmt();
+        AST_.push_back(s);
+    } while (lookahead_ != Token::EOT);
+    
+    return stmt();
 }
 
+//provided
 Stmt *Parser::while_stmt() {
   match(Token::WHILE);
   Expr *cond = bool_();
@@ -57,17 +82,55 @@ Stmt *Parser::while_stmt() {
 }
 
 Stmt *Parser::elsePart() {
-  // XXX
+  // XXX   -----ELSIF bool THEN block else part | ELSE block FI | FI
+    if(lookahead_ == Token::ELSIF){
+        match(Token::ELSIF);
+        Expr *cond = bool_();
+        match(Token::THEN);
+        Stmt *body = block();
+        Stmt *elsep = elsePart();
+        return new IfStmt(cond, body, elsep);
+    } else /*if(lookahead_ == Token::ELSE)*/  {
+        match(Token::ELSE);
+        Stmt *elsep = block();
+        match(Token::FI);
+        return new fiStmt(elsep);
+    } /*else {
+        match(Token::FI);
+        return new fiStmt();
+    }*/
+    
 }
 
 Stmt *Parser::if_stmt() {
-  // XXX
+  // XXX    ------IF bool THEN block else part
+    match(Token::IF);
+    Expr *cond = bool_();
+    match(Token::THEN);
+    Stmt *body = block();
+    Stmt *elsep = elsePart();
+    return new IfStmt(cond, body, elsep);
 }
 
 Stmt *Parser::action() {
   // XXX
+    switch(lookahead_) {
+        case Token::HOME:    match(Token::HOME); return new HomeStmt();
+        case Token::PENUP:   match(Token::PENUP); return new PenUpStmt();
+        case Token::PENDOWN: match(Token::PENDOWN); return new PenDownStmt();
+        case Token::FORWARD: match(Token::FORWARD); return new ForwardStmt(expr());
+        case Token::LEFT:    match(Token::LEFT); return new LeftStmt(expr());
+        case Token::RIGHT:   match(Token::RIGHT); return new RightStmt(expr());
+        case Token::PUSHSTATE:
+            match(Token::PUSHSTATE); return new PushStateStmt();
+        case Token::POPSTATE:
+            match(Token::POPSTATE); return new PopStateStmt();
+        default:
+            throw std::runtime_error("Expecting turtle action statement!");
+    }
 }
 
+//provided
 Expr *Parser::expr() {
   Expr *e = term();
   while (lookahead_ == Token::PLUS ||
@@ -85,16 +148,56 @@ Expr *Parser::expr() {
 
 Expr *Parser::term() {
   // XXX
+    Expr *e = factor();
+    while (lookahead_ == Token::MULT ||
+           lookahead_ == Token::DIV) {
+        Token op = lookahead_;
+        match(lookahead_);
+        Expr *t = factor();
+        if (op == Token::MULT)
+            e = new MulExpr(e, t);
+        else
+            e = new DivExpr(e, t);
+    }
+    return e;
 }
 
 Expr *Parser::factor() {
   // XXX
+    switch(lookahead_) {
+        case Token::PLUS:   match(Token::PLUS); return factor();
+        case Token::MINUS:  match(Token::MINUS); return new NegExpr(factor());
+        case Token::LPAREN:
+        {
+            match(Token::LPAREN);
+            Expr *e = expr();
+            match(Token::RPAREN);
+            return e;
+        }
+        case Token::IDENT:
+        {
+            const std::string name = attribute_.s;
+            match(Token::IDENT);
+            return new VarExpr(name);
+        }
+        case Token::REAL:
+        {
+            const float val = attribute_.f;
+            match(Token::REAL);
+            return new ConstExpr(val);
+        }
+        default:
+            throw std::runtime_error("Expecting factor!");
+    }
 }
 
 Expr *Parser::bool_() {
   // XXX
-}
+    Expr *e = expr();
+    return e;
 
+}
+/*
 Expr *Parser::bool_term() {
   // XXX
 }
@@ -106,5 +209,5 @@ Expr *Parser::bool_factor() {
 Expr *Parser::cmp() {
   // XXX
 }
-
+*/
 

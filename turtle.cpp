@@ -8,6 +8,7 @@
 #include "Parser.h"
 
 int main(int argc, char *argv[]) {
+    
   if (argc != 2) {
     std::cerr << "usage: " << argv[0] << " <prog.turtle>" << std::endl;
     exit(1);
