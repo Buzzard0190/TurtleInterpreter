@@ -81,11 +81,14 @@ top: //I'm going to use a goto because cochran said we could!!!
         if (c == '.') {
             buffer.push_back(c);
             c = in_.get();
+            
             while (std::isdigit(c)) {
                 buffer.push_back(c);
                 c = in_.get();
             }
+            
         }
+        
         in_.unget();
         attr.f = std::stod(buffer);
         return Token::REAL;
