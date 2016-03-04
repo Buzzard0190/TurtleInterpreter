@@ -90,7 +90,7 @@ public:
     LeftStmt(Expr *e) : _angle{e} {}
     virtual void execute(Env& env) {
         const float a = _angle->eval(env);
-        std::cout << "R " << -a << std::endl;
+        std::cout << "R " << a << std::endl;
     }
 };
 
