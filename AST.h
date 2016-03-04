@@ -112,6 +112,7 @@ public:
     ~IfStmt(){delete cond_; delete body_; delete elsp_;}
 };
 
+
 //----------------------------
 class fiStmt:public Stmt{
 protected:
@@ -124,7 +125,6 @@ public:
     }
     ~fiStmt(){delete elsp_;}
 };
-
 
 //----------------------------
 class WhileStmt:public Stmt {
@@ -142,18 +142,6 @@ public:
 };
 
 //----------------------------
-class AssignStmt : public Stmt {
-protected:
-    const std::string _name;  //l-value
-    Expr *_expr; // r-value
-public:
-    AssignStmt(const std::string& n, Expr *e) : _name{n}, _expr{e} {}
-    virtual void execute(Env& env) {
-        env.put(_name, _expr->eval(env));
-    }
-};
-
-//----------------------------
 class BinaryExpr : public Expr {
 protected:
     Expr *_left, *_right;
@@ -167,6 +155,98 @@ public:
     AddExpr(Expr *l, Expr *r) : BinaryExpr(l,r) {}
     virtual float eval(Env& env) const {
         return _left->eval(env) + _right->eval(env);
+    }
+};
+
+//----------------------------
+class boolStmt:public BinaryExpr {
+public:
+    boolStmt(Expr *c, Expr *b):BinaryExpr(c,b) {}
+    virtual float eval(Env& env) const{
+        return (_left->eval(env) || _right->eval(env));
+    }
+    ~boolStmt() {delete _left; delete _right;}
+};
+
+//----------------------------------------------------------------
+class bool_termStmt : public BinaryExpr {
+public:
+    bool_termStmt(Expr *c, Expr *b):BinaryExpr(c,b) {}
+    virtual float eval(Env& env) const{
+        return (_left->eval(env) && _right->eval(env));
+    }
+    ~bool_termStmt() {delete _left; delete _right;}
+};
+
+//----------------------------------------------------------------
+class eqStmt : public BinaryExpr {
+public:
+    eqStmt(Expr *c, Expr *b):BinaryExpr(c,b) {}
+    virtual float eval(Env& env) const{
+        return (_left->eval(env) == _right->eval(env));
+    }
+    ~eqStmt() {delete _left; delete _right;}
+};
+
+//----------------------------------------------------------------
+class neStmt : public BinaryExpr {
+public:
+    neStmt(Expr *c, Expr *b):BinaryExpr(c,b) {}
+    virtual float eval(Env& env) const{
+        return (_left->eval(env) != _right->eval(env));
+    }
+    ~neStmt() {delete _left; delete _right;}
+};
+
+//----------------------------------------------------------------
+class ltStmt : public BinaryExpr {
+public:
+    ltStmt(Expr *c, Expr *b):BinaryExpr(c,b) {}
+    virtual float eval(Env& env) const{
+        return (_left->eval(env) < _right->eval(env));
+    }
+    ~ltStmt() {delete _left; delete _right;}
+};
+
+//----------------------------------------------------------------
+class leStmt : public BinaryExpr {
+public:
+    leStmt(Expr *c, Expr *b):BinaryExpr(c,b) {}
+    virtual float eval(Env& env) const{
+        return (_left->eval(env) <= _right->eval(env));
+    }
+    ~leStmt() {delete _left; delete _right;}
+};
+
+//----------------------------------------------------------------
+class gtStmt : public BinaryExpr {
+public:
+    gtStmt(Expr *c, Expr *b):BinaryExpr(c,b) {}
+    virtual float eval(Env& env) const{
+        return (_left->eval(env) > _right->eval(env));
+    }
+    ~gtStmt() {delete _left; delete _right;}
+};
+
+//----------------------------------------------------------------
+class geStmt : public BinaryExpr {
+public:
+    geStmt(Expr *c, Expr *b):BinaryExpr(c,b) {}
+    virtual float eval(Env& env) const{
+        return (_left->eval(env) >= _right->eval(env));
+    }
+    ~geStmt() {delete _left; delete _right;}
+};
+
+//----------------------------
+class AssignStmt : public Stmt {
+protected:
+    const std::string _name;  //l-value
+    Expr *_expr; // r-value
+public:
+    AssignStmt(const std::string& n, Expr *e) : _name{n}, _expr{e} {}
+    virtual void execute(Env& env) {
+        env.put(_name, _expr->eval(env));
     }
 };
 
@@ -235,6 +315,8 @@ public:
         return _val;
     }
 };
+
+
 
 //
 // XXXX

@@ -39,6 +39,18 @@ void Parser::stmt_seq() {
   }
 }
 
+
+Stmt *Parser::block() {
+    // XXX
+    do {
+        Stmt *s = stmt();
+        AST_.push_back(s);
+    } while (lookahead_ != Token::EOT);
+    
+    return stmt();
+}
+
+
 Stmt *Parser::stmt() {
   // XXX
     if (lookahead_ == Token::IDENT) {
@@ -61,15 +73,6 @@ Stmt *Parser::assign() {
     return new AssignStmt(name, e);
 }
 
-Stmt *Parser::block() {
-  // XXX
-    do {
-        Stmt *s = stmt();
-        AST_.push_back(s);
-    } while (lookahead_ != Token::EOT);
-    
-    return stmt();
-}
 
 //provided
 Stmt *Parser::while_stmt() {
@@ -90,15 +93,15 @@ Stmt *Parser::elsePart() {
         Stmt *body = block();
         Stmt *elsep = elsePart();
         return new IfStmt(cond, body, elsep);
-    } else /*if(lookahead_ == Token::ELSE)*/  {
+    } else if(lookahead_ == Token::ELSE) {
         match(Token::ELSE);
         Stmt *elsep = block();
         match(Token::FI);
         return new fiStmt(elsep);
-    } /*else {
+    } else {
         match(Token::FI);
-        return new fiStmt();
-    }*/
+        return nullptr;
+    }
     
 }
 
@@ -192,22 +195,75 @@ Expr *Parser::factor() {
 }
 
 Expr *Parser::bool_() {
-  // XXX
-    Expr *e = expr();
-    return e;
+  // XXX            bool   term {OR bool   term }
+    Expr *cond_ = bool_term();
+    while (lookahead_ == Token::OR) {
+        match(Token::OR);
+        Expr *cond2_ = bool_term();
+        cond_ = new boolStmt(cond_, cond2_);
+    }
+    
+    return cond_;
 
 }
-/*
+
 Expr *Parser::bool_term() {
-  // XXX
+  // XXX            bool   factor {AND bool   factor }
+    Expr *cond_ = bool_factor();
+    while (lookahead_ == Token::AND) {
+        match(Token::AND);
+        Expr *cond2_ = bool_factor();
+        cond_ = new bool_termStmt(cond_, cond2_);
+    }
+    
+    return cond_;
 }
 
 Expr *Parser::bool_factor() {
-  // XXX
+  // XXX        NOT boolfactor|(bool)|cmp
+    Expr *e;
+    if (lookahead_ == Token::NOT) {
+        match(Token::NOT);
+        e = bool_factor();
+    } else if (lookahead_ == Token::LPAREN){
+        match(Token::LPAREN);
+        e = bool_();
+        match(Token::RPAREN);
+    } else {
+        e = cmp();
+    }
+    return e;
 }
 
 Expr *Parser::cmp() {
-  // XXX
+  // XXX   expr cmp op expr
+    
+    Expr *cond_ = expr();
+    if (lookahead_ == Token::EQ) {
+        match(Token::EQ);
+        return new eqStmt(cond_, expr());
+    } else if (lookahead_ == Token::NE) {
+        match(Token::NE);
+        return new neStmt(cond_, expr());
+    } else if (lookahead_ == Token::LT) {
+        match(Token::LT);
+        return new ltStmt(cond_, expr());
+    } else if (lookahead_ == Token::LE) {
+        match(Token::LE);
+        return new leStmt(cond_, expr());
+    } else if (lookahead_ == Token::GT) {
+        match(Token::GT);
+        return new gtStmt(cond_, expr());
+    } else if (lookahead_ == Token::GE) {
+        match(Token::GE);
+        return new geStmt(cond_, expr());
+    }
+    
+    return cond_;
 }
-*/
+
+
+    
+
+
 
