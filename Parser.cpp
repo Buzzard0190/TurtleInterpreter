@@ -42,12 +42,25 @@ void Parser::stmt_seq() {
 
 Stmt *Parser::block() {
     // XXX
-    do {
+    std::vector<Stmt*> stmts;
+
+    while(lookahead_ == Token::WHILE    ||
+          lookahead_ == Token::IF       ||
+          lookahead_ == Token::IDENT    ||
+          lookahead_ == Token::HOME     ||
+          lookahead_ == Token::PENDOWN  ||
+          lookahead_ == Token::PENUP    ||
+          lookahead_ == Token::FORWARD  ||
+          lookahead_ == Token::RIGHT    ||
+          lookahead_ == Token::LEFT     ||
+          lookahead_ == Token::PUSHSTATE||
+          lookahead_ == Token::POPSTATE
+          )
+    {
         Stmt *s = stmt();
-        AST_.push_back(s);
-    } while (lookahead_ != Token::EOT);
-    
-    return stmt();
+        stmts.push_back(s);
+    }
+    return new blockStmt(stmts);
 }
 
 

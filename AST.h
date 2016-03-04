@@ -316,6 +316,18 @@ public:
     }
 };
 
+//----------------------------
+class blockStmt : public Stmt {
+protected:
+    std::vector<Stmt*> _s;
+public:
+    blockStmt(const std::vector<Stmt*>& s) : _s{s} {} // Is this right?
+    virtual void execute(Env& env)
+    {
+        for(auto i : _s)
+            i->execute(env);
+    }
+};
 
 
 //
