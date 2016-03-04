@@ -105,7 +105,7 @@ public:
     void execute(Env& env){
         if (cond_->eval(env)) {
             body_->execute(env);
-        } else {
+        } else if (elsp_ != nullptr){
             elsp_->execute(env);
         }
     }
